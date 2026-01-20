@@ -213,32 +213,6 @@ Within Microsoft Sentinel:
 
 ---
 
-##  Repository Structure
-
-```
-azure-sentinel-honeypot/
-├── README.md
-├── architecture.png
-├── kql/
-│   ├── failed-logins.kql
-│   ├── successful-logins.kql
-│   └── brute-force-detection.kql
-└── screenshots/
-    ├── 01-resource-group.png
-    ├── 02-log-analytics.png
-    ├── 03-sentinel-overview.png
-    ├── 04-vm-overview.png
-    ├── 05-nsg-rdp-open.png
-    ├── 06-firewall-disabled.png
-    ├── 07-ama-installed.png
-    ├── 08-security-events-connector.png
-    ├── 09-kql-failed-logins.png
-    ├── 10-analytics-rule.png
-    └── 11-incident.png
-```
-
----
-
 
 ##  Cleanup
 
