@@ -52,6 +52,8 @@ By intentionally exposing a Windows VM to the internet and disabling its local f
 - Deployed a custom PowerShell script that monitors the `Security` event log for failed RDP logins.
 - The script uses the `ipgeolocation.io` API to convert the attacker's IP address into Latitude, Longitude, and Country data.
 
+![PowerShell Script In Action](https://github.com/jeloa/Azure-Portfolio/Security-Engineer/screenshots/powershell_running.png)
+
 ### 4. Custom Log Parsing & Visualization
 - Configured a **Custom Log** in Azure to ingest the specialized data produced by the PowerShell script.
 - Created a **Sentinel Workbook** using a custom KQL query to visualize the attack data on a world map.
