@@ -77,7 +77,4 @@ Visualization Value: Demonstrated how SIEM tools turn massive amounts of raw log
 ###  Disclaimer
 For Educational Purposes Only. This project involves intentionally weakening security for research. Ensure you work in an isolated environment and delete all resources after the lab to prevent unexpected Azure costs.
 
-         state = extract(@"state:([^,]+)", 1, RawData),
-         country = extract(@"country:([^,]+)", 1, RawData),
-         label = extract(@"label:([^,]+)", 1, RawData)
-| summarize event_count=count() by sourcehost, latitude, longitude, country, label, destinationhost
+
