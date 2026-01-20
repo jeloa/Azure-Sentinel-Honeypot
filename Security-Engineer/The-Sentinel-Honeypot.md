@@ -1,84 +1,243 @@
-# 🛡️ Azure Sentinel (SIEM) & RDP Threat Mapping Lab
+# Azure Sentinel Honeypot Lab (End-to-End)
 
-![Azure Sentinel Attack Map](https://github.com/jeloa/Azure-Portfolio/Security-Engineer/screenshots/sentinel_map.png)
-*Figure 1: Real-time global heat map of RDP brute-force attacks captured by the honeypot.*
+> **Goal:** Deploy a vulnerable honeypot VM in Azure, collect attack telemetry, and analyze it using **Microsoft Sentinel** (SIEM) with **Log Analytics**.
 
-## 📖 Project Overview
-This project demonstrates the deployment of a cloud-native **SIEM (Microsoft Sentinel)** linked to a live **Windows Honeypot**. The objective was to observe real-world RDP brute-force attacks from global sources and visualize the threat landscape in real-time.
-
-By intentionally exposing a Windows VM to the internet and disabling its local firewall, this lab captures failed login attempts, extracts geographical metadata from IP addresses via PowerShell, and plots them on a global heat map using **Kusto Query Language (KQL)**.
-
-### 🎯 Key Learning Objectives
-* **SIEM Implementation:** Configuring Microsoft Sentinel and Log Analytics Workspaces (LAW).
-* **Security Automation:** Utilizing PowerShell to automate geolocation data extraction from Windows Event Logs.
-* **Threat Visualization:** Engineering custom Workbooks to map cyber attacks geographically.
-* **Incident Response:** Analyzing `Event ID 4625` (Failed Logon) to understand adversary patterns.
+This lab is beginner-friendly, SOC-oriented, and **resume/GitHub ready**.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
-* **Cloud Platform:** Microsoft Azure
-* **SIEM:** Microsoft Sentinel
-* **Log Management:** Log Analytics Workspace
-* **Honeypot:** Windows 10 Virtual Machine
-* **Scripting:** PowerShell (for API-based Geolocation extraction)
-* **Data Language:** Kusto Query Language (KQL)
-* **External API:** [ipgeolocation.io](https://ipgeolocation.io/)
+## 🧠 What You Will Learn
+
+* Azure resource deployment (VM, NSG, Log Analytics)
+* Microsoft Sentinel setup
+* Honeypot concept using exposed services (RDP)
+* Log ingestion and analytics
+* Basic KQL for SOC analysis
+* Incident investigation workflow
 
 ---
 
-## 🚀 Execution Steps
+## 🧱 Architecture Overview
 
-### 1. Infrastructure Deployment
-- Created a dedicated **Resource Group** in Azure.
-- Deployed a Windows 10 VM with a **Network Security Group (NSG)** configured to allow all inbound traffic (`ANY` to `ANY`).
-
-### 2. Log Analytics & Sentinel Setup
-- Provisioned a **Log Analytics Workspace**.
-- Onboarded **Microsoft Sentinel** to the workspace.
-- Configured **Microsoft Defender for Cloud** to collect "All Events" from the VM.
-
-### 3. Honeypot Configuration & Automation
-- Logged into the VM and disabled **Windows Defender Firewall** for all profiles.
-- Deployed a custom PowerShell script that monitors the `Security` event log for failed RDP logins.
-- The script uses the `ipgeolocation.io` API to convert the attacker's IP address into Latitude, Longitude, and Country data.
-
-![PowerShell Script In Action](https://github.com/jeloa/Azure-Portfolio/Security-Engineer/screenshots/powershell_running.png)
-*Figure 2: Custom PowerShell script extracting geolocation data from failed RDP login attempts.*
-
-### 4. Custom Log Parsing & Visualization
-- Configured a **Custom Log (DCR)** in Azure to ingest the specialized data produced by the PowerShell script.
-- Created a **Sentinel Workbook** using KQL to visualize the attack data on a world map.
-
----
-
-## 🔍 Data Analysis with KQL
-The following Kusto Query was used to parse the custom log data and generate the geographical visualization:
-
-```kusto
-FAILED_RDP_WITH_GEO_CL 
-| extend latitude = extract(@"latitude:([0-9\.-]+)", 1, RawData),
-         longitude = extract(@"longitude:([0-9\.-]+)", 1, RawData),
-         destinationhost = extract(@"destinationhost:([^,]+)", 1, RawData),
-         username = extract(@"username:([^,]+)", 1, RawData),
-         sourcehost = extract(@"sourcehost:([^,]+)", 1, RawData),
-         state = extract(@"state:([^,]+)", 1, RawData),
-         country = extract(@"country:([^,]+)", 1, RawData),
-         label = extract(@"label:([^,]+)", 1, RawData)
-| summarize event_count=count() by sourcehost, latitude, longitude, country, label, destinationhost
+```
+Internet
+   ↓
+[Attacker]
+   ↓
+[Azure VM (Honeypot)] -- NSG (Open RDP)
+   ↓
+[Log Analytics Workspace]
+   ↓
+[Microsoft Sentinel]
 ```
 
 ---
 
-###  Project Insights
-- Immediate Exposure: Brute-force attempts began within 10-15 minutes of the VM being live.
+## ⚠️ Important Notes (Read First)
 
-- Global Threat Landscape: Captured thousands of login attempts from IPs worldwide, primarily targeting the `Administrator` account with common passwords.
-
-- SIEM Efficiency: Demonstrated the power of SIEM in transforming massive volumes of raw security data into actionable intelligence.
+* This lab **intentionally exposes a VM** to the internet
+* **DO NOT** reuse passwords
+* Delete resources after testing to avoid charges
+* Azure Free Tier / $200 credit is sufficient
 
 ---
 
-###  Disclaimer
-For Educational Purposes Only. This project involves intentionally weakening security for research. Ensure you work in an isolated environment and delete all resources after the lab to prevent unexpected Azure costs.
+## 🛠️ Prerequisites
+
+* Azure account
+* Basic understanding of cloud concepts
+* Browser access (no local tools required)
+
+---
+
+## STEP 1: Create a Resource Group
+
+1. Azure Portal → **Resource Groups**
+2. Click **Create**
+3. Configure:
+
+   * Name: `rg-sentinel-honeypot`
+   * Region: `East US` (or any preferred region)
+4. Click **Review + Create**
+
+---
+
+## STEP 2: Create a Log Analytics Workspace
+
+1. Azure Portal → **Log Analytics Workspaces** → Create
+2. Configure:
+
+   * Name: `law-sentinel-honeypot`
+   * Resource Group: `rg-sentinel-honeypot`
+   * Region: Same as resource group
+3. Create
+
+---
+
+## STEP 3: Enable Microsoft Sentinel
+
+1. Azure Portal → **Microsoft Sentinel**
+2. Click **Create**
+3. Select:
+
+   * Workspace: `law-sentinel-honeypot`
+4. Add
+
+✔ Sentinel is now active
+
+---
+
+## STEP 4: Create the Honeypot Virtual Machine
+
+### 4.1 VM Basics
+
+1. Azure Portal → **Virtual Machines** → Create
+2. Configuration:
+
+   * Name: `vm-honeypot`
+   * Image: `Windows Server 2019 Datacenter`
+   * Size: `Standard B1s`
+   * Authentication: Password
+   * Username: `adminuser`
+   * Password: (Strong but disposable)
+
+---
+
+### 4.2 Networking (Critical Step)
+
+1. Public IP: **Enabled**
+2. NIC Network Security Group:
+
+   * Allow **RDP (3389)** from **Any source**
+
+⚠️ This is intentional for honeypot behavior
+
+---
+
+## STEP 5: Disable Windows Defender Firewall (Inside VM)
+
+> This increases visibility of attack traffic
+
+1. RDP into the VM
+2. Open **Windows Defender Firewall**
+3. Turn **OFF** firewall for:
+
+   * Domain
+   * Private
+   * Public
+
+---
+
+## STEP 6: Connect VM to Log Analytics
+
+1. Azure Portal → VM → **Extensions + Applications**
+2. Add extension:
+
+   * **Azure Monitor Agent (AMA)**
+3. Connect to:
+
+   * Workspace: `law-sentinel-honeypot`
+
+---
+
+## STEP 7: Enable Security Event Logs
+
+1. Microsoft Sentinel → **Data connectors**
+2. Open **Security Events via AMA**
+3. Configure:
+
+   * Select subscription
+   * Add VM
+   * Collect: **All Security Events**
+
+---
+
+## STEP 8: Wait for Attacks ⏳
+
+* Leave VM running for **30 minutes – 24 hours**
+* RDP brute-force attempts usually appear quickly
+
+---
+
+## STEP 9: Analyze Logs Using KQL
+
+### 9.1 Failed Login Attempts
+
+```kql
+SecurityEvent
+| where EventID == 4625
+| summarize count() by IpAddress, Account
+| order by count_ desc
+```
+
+---
+
+### 9.2 Successful Logins
+
+```kql
+SecurityEvent
+| where EventID == 4624
+| project TimeGenerated, Account, IpAddress, LogonType
+```
+
+---
+
+### 9.3 Top Attacking Countries
+
+```kql
+SecurityEvent
+| where EventID == 4625
+| summarize count() by Country
+| order by count_ desc
+```
+
+---
+
+## STEP 10: Create an Incident Rule
+
+1. Sentinel → **Analytics** → Create Rule
+2. Type: Scheduled
+3. Query:
+
+```kql
+SecurityEvent
+| where EventID == 4625
+| summarize Attempts = count() by IpAddress
+| where Attempts > 10
+```
+
+4. Map entities:
+
+   * IP → `IpAddress`
+5. Enable rule
+
+---
+
+## STEP 11: Incident Investigation
+
+1. Sentinel → **Incidents**
+2. Open generated incident
+3. Review:
+
+   * Timeline
+   * IP entity
+   * Related alerts
+
+---
+
+## 🧹 Cleanup (VERY IMPORTANT)
+
+Delete the entire resource group:
+
+```
+rg-sentinel-honeypot
+```
+
+This stops all billing.
+
+---
+
+
+
+
 
