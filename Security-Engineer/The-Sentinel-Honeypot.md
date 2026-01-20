@@ -1,30 +1,39 @@
-# Azure Sentinel Honeypot Lab (End-to-End)
+# Azure Sentinel Honeypot Lab 
 
-> **Goal:** Deploy a vulnerable honeypot VM in Azure, collect attack telemetry, and analyze it using **Microsoft Sentinel** (SIEM) with **Log Analytics**.
+> **An end-to-end SOC-focused honeypot deployment using Microsoft Sentinel (SIEM) to detect and investigate real-world attack activity in Azure.**
 
-This lab is beginner-friendly, SOC-oriented, and **resume/GitHub ready**.
-
----
-
-## 🧠 What You Will Learn
-
-* Azure resource deployment (VM, NSG, Log Analytics)
-* Microsoft Sentinel setup
-* Honeypot concept using exposed services (RDP)
-* Log ingestion and analytics
-* Basic KQL for SOC analysis
-* Incident investigation workflow
+This project demonstrates hands-on experience with **Azure security monitoring, log ingestion, KQL analysis, and incident response**, aligned with **Junior SOC / Cyber Defense Analyst** responsibilities.
 
 ---
 
-## 🧱 Architecture Overview
+##  Project Overview
+
+This lab deploys an intentionally exposed Windows virtual machine in Azure to act as a **honeypot**. Attack telemetry (primarily RDP brute-force attempts) is collected via **Azure Monitor Agent**, ingested into **Log Analytics**, and analyzed in **Microsoft Sentinel**.
+
+The goal is to simulate real-world attacker behavior and practice **threat detection, investigation, and alerting**.
+
+---
+
+##  Objectives
+
+* Deploy a honeypot VM with exposed RDP
+* Ingest Windows security logs into Microsoft Sentinel
+* Detect brute-force activity using KQL
+* Create Sentinel analytics rules and incidents
+* Perform basic SOC-style investigation
+
+---
+
+##  Architecture
 
 ```
 Internet
    ↓
-[Attacker]
+[Attacker IPs]
    ↓
-[Azure VM (Honeypot)] -- NSG (Open RDP)
+[Azure VM (Windows Honeypot)]
+   ↓
+[Azure Monitor Agent]
    ↓
 [Log Analytics Workspace]
    ↓
@@ -33,146 +42,131 @@ Internet
 
 ---
 
-## ⚠️ Important Notes (Read First)
+##  Technologies Used
 
-* This lab **intentionally exposes a VM** to the internet
-* **DO NOT** reuse passwords
-* Delete resources after testing to avoid charges
-* Azure Free Tier / $200 credit is sufficient
-
----
-
-## 🛠️ Prerequisites
-
-* Azure account
-* Basic understanding of cloud concepts
-* Browser access (no local tools required)
+* Microsoft Azure
+* Microsoft Sentinel (SIEM)
+* Log Analytics Workspace
+* Azure Monitor Agent (AMA)
+* Windows Server 2019
+* Kusto Query Language (KQL)
 
 ---
 
-## STEP 1: Create a Resource Group
+##  Security Disclaimer
 
-1. Azure Portal → **Resource Groups**
-2. Click **Create**
-3. Configure:
+This lab **intentionally weakens security controls** for learning purposes:
 
-   * Name: `rg-sentinel-honeypot`
-   * Region: `East US` (or any preferred region)
-4. Click **Review + Create**
+* Public IP exposure
+* Open RDP (3389) to the internet
+* Windows Firewall disabled
 
----
-
-## STEP 2: Create a Log Analytics Workspace
-
-1. Azure Portal → **Log Analytics Workspaces** → Create
-2. Configure:
-
-   * Name: `law-sentinel-honeypot`
-   * Resource Group: `rg-sentinel-honeypot`
-   * Region: Same as resource group
-3. Create
+ **Do NOT use production credentials** and **delete all resources after completion**.
 
 ---
 
-## STEP 3: Enable Microsoft Sentinel
+##  Deployment Steps
 
-1. Azure Portal → **Microsoft Sentinel**
-2. Click **Create**
-3. Select:
+###  Create Resource Group
 
-   * Workspace: `law-sentinel-honeypot`
-4. Add
+* Name: `rg-sentinel-honeypot`
+* Region: East US (or preferred region)
 
-✔ Sentinel is now active
+ **Screenshot:** Resource group overview page
 
 ---
 
-## STEP 4: Create the Honeypot Virtual Machine
+###  Create Log Analytics Workspace
 
-### 4.1 VM Basics
+* Name: `law-sentinel-honeypot`
+* Same region as resource group
 
-1. Azure Portal → **Virtual Machines** → Create
-2. Configuration:
-
-   * Name: `vm-honeypot`
-   * Image: `Windows Server 2019 Datacenter`
-   * Size: `Standard B1s`
-   * Authentication: Password
-   * Username: `adminuser`
-   * Password: (Strong but disposable)
+ **Screenshot:** Log Analytics workspace overview
 
 ---
 
-### 4.2 Networking (Critical Step)
+###  Enable Microsoft Sentinel
 
-1. Public IP: **Enabled**
-2. NIC Network Security Group:
+* Attach Sentinel to `law-sentinel-honeypot`
 
-   * Allow **RDP (3389)** from **Any source**
-
-⚠️ This is intentional for honeypot behavior
+ **Screenshot:** Microsoft Sentinel overview dashboard
 
 ---
 
-## STEP 5: Disable Windows Defender Firewall (Inside VM)
+###  Deploy Honeypot Virtual Machine
 
-> This increases visibility of attack traffic
+**Configuration:**
 
-1. RDP into the VM
-2. Open **Windows Defender Firewall**
-3. Turn **OFF** firewall for:
+* OS: Windows Server 2019 Datacenter
+* Size: Standard B1s
+* Authentication: Username + Password
 
-   * Domain
-   * Private
-   * Public
+ **Screenshot:** VM overview (show public IP, OS, status)
 
 ---
 
-## STEP 6: Connect VM to Log Analytics
+###  Configure Network Security Group (Critical)
 
-1. Azure Portal → VM → **Extensions + Applications**
-2. Add extension:
+Allow inbound RDP from **Any source**:
 
-   * **Azure Monitor Agent (AMA)**
-3. Connect to:
+* Port: 3389
+* Protocol: TCP
 
-   * Workspace: `law-sentinel-honeypot`
-
----
-
-## STEP 7: Enable Security Event Logs
-
-1. Microsoft Sentinel → **Data connectors**
-2. Open **Security Events via AMA**
-3. Configure:
-
-   * Select subscription
-   * Add VM
-   * Collect: **All Security Events**
+ **Screenshot:** NSG inbound rule showing RDP open to Any
 
 ---
 
-## STEP 8: Wait for Attacks ⏳
+###  Disable Windows Firewall (Inside VM)
 
-* Leave VM running for **30 minutes – 24 hours**
-* RDP brute-force attempts usually appear quickly
+* Turn OFF firewall for Domain, Private, and Public profiles
+
+ **Screenshot:** Windows Defender Firewall disabled screen
 
 ---
 
-## STEP 9: Analyze Logs Using KQL
+###  Connect VM to Log Analytics
 
-### 9.1 Failed Login Attempts
+* Install **Azure Monitor Agent (AMA)**
+* Link VM to Log Analytics workspace
+
+ **Screenshot:** VM extensions showing Azure Monitor Agent installed
+
+---
+
+###  Enable Security Event Collection
+
+* Sentinel → Data Connectors
+* Enable **Security Events via AMA**
+* Collect **All Security Events**
+
+ **Screenshot:** Data connector status showing VM connected
+
+---
+
+##  Attack Simulation
+
+The VM is left running and exposed to the internet. Within minutes to hours, automated attackers attempt RDP brute-force logins.
+
+No manual attack simulation is required.
+
+---
+
+##  Log Analysis (KQL)
+
+### Failed Login Attempts (Event ID 4625)
 
 ```kql
 SecurityEvent
 | where EventID == 4625
-| summarize count() by IpAddress, Account
-| order by count_ desc
+| summarize Attempts = count() by IpAddress, Account
+| order by Attempts desc
 ```
+
+ **Screenshot:** Log Analytics results showing multiple attacker IPs
 
 ---
 
-### 9.2 Successful Logins
+### Successful Logins (Event ID 4624)
 
 ```kql
 SecurityEvent
@@ -182,22 +176,7 @@ SecurityEvent
 
 ---
 
-### 9.3 Top Attacking Countries
-
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize count() by Country
-| order by count_ desc
-```
-
----
-
-## STEP 10: Create an Incident Rule
-
-1. Sentinel → **Analytics** → Create Rule
-2. Type: Scheduled
-3. Query:
+### Brute-Force Detection Logic
 
 ```kql
 SecurityEvent
@@ -206,38 +185,85 @@ SecurityEvent
 | where Attempts > 10
 ```
 
-4. Map entities:
+---
 
-   * IP → `IpAddress`
-5. Enable rule
+##  Incident Creation
+
+A scheduled analytics rule is created in Sentinel to detect excessive failed login attempts.
+
+* Trigger: More than 10 failures from a single IP
+* Entity mapping: IP Address
+
+ **Screenshot:** Analytics rule configuration
+
+ **Screenshot:** Generated Sentinel incident
 
 ---
 
-## STEP 11: Incident Investigation
+##  SOC Investigation Workflow
 
-1. Sentinel → **Incidents**
-2. Open generated incident
-3. Review:
+Within Microsoft Sentinel:
 
-   * Timeline
-   * IP entity
-   * Related alerts
+* Review incident timeline
+* Investigate attacking IP entity
+* Analyze frequency and patterns of attempts
+* Validate detection logic
+
+ **Screenshot:** Incident investigation graph view
 
 ---
 
-## 🧹 Cleanup (VERY IMPORTANT)
+##  Repository Structure
 
-Delete the entire resource group:
+```
+azure-sentinel-honeypot/
+├── README.md
+├── architecture.png
+├── kql/
+│   ├── failed-logins.kql
+│   ├── successful-logins.kql
+│   └── brute-force-detection.kql
+└── screenshots/
+    ├── 01-resource-group.png
+    ├── 02-log-analytics.png
+    ├── 03-sentinel-overview.png
+    ├── 04-vm-overview.png
+    ├── 05-nsg-rdp-open.png
+    ├── 06-firewall-disabled.png
+    ├── 07-ama-installed.png
+    ├── 08-security-events-connector.png
+    ├── 09-kql-failed-logins.png
+    ├── 10-analytics-rule.png
+    └── 11-incident.png
+```
+
+---
+
+
+##  Cleanup
+
+Delete the resource group after completing the lab to avoid unnecessary charges:
 
 ```
 rg-sentinel-honeypot
 ```
 
-This stops all billing.
-
 ---
 
 
+
+##  Future Improvements
+
+* Linux SSH honeypot
+* Sentinel Workbooks & dashboards
+* Geo-location visualization
+* MITRE ATT&CK mapping
+* Automation playbooks (Logic Apps)
+
+---
+
+**Author:** Jelo Abejero
+**Focus:** SOC Analyst | Cyber Defense | Cloud Security
 
 
 
