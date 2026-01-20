@@ -1,4 +1,4 @@
-# Azure Sentinel Honeypot Lab 🛡️
+# Azure Sentinel Honeypot Lab 
 
 > **An end-to-end SOC-focused honeypot deployment using Microsoft Sentinel (SIEM) to detect and investigate real-world attack activity in Azure.**
 
@@ -6,7 +6,7 @@ This project demonstrates hands-on experience with **Azure security monitoring, 
 
 ---
 
-## 📌 Project Overview
+##  Project Overview
 
 This lab deploys an intentionally exposed Windows virtual machine in Azure to act as a **honeypot**. Attack telemetry (primarily RDP brute-force attempts) is collected via **Azure Monitor Agent**, ingested into **Log Analytics**, and analyzed in **Microsoft Sentinel**.
 
@@ -14,7 +14,7 @@ The goal is to simulate real-world attacker behavior and practice **threat detec
 
 ---
 
-## 🎯 Objectives
+##  Objectives
 
 * Deploy a honeypot VM with exposed RDP
 * Ingest Windows security logs into Microsoft Sentinel
@@ -24,7 +24,7 @@ The goal is to simulate real-world attacker behavior and practice **threat detec
 
 ---
 
-## 🧱 Architecture
+##  Architecture
 
 ```
 Internet
@@ -42,7 +42,7 @@ Internet
 
 ---
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 * Microsoft Azure
 * Microsoft Sentinel (SIEM)
@@ -53,7 +53,7 @@ Internet
 
 ---
 
-## ⚠️ Security Disclaimer
+##  Security Disclaimer
 
 This lab **intentionally weakens security controls** for learning purposes:
 
@@ -61,39 +61,39 @@ This lab **intentionally weakens security controls** for learning purposes:
 * Open RDP (3389) to the internet
 * Windows Firewall disabled
 
-⚠️ **Do NOT use production credentials** and **delete all resources after completion**.
+ **Do NOT use production credentials** and **delete all resources after completion**.
 
 ---
 
-## 🚀 Deployment Steps
+##  Deployment Steps
 
-### 1️⃣ Create Resource Group
+###  Create Resource Group
 
 * Name: `rg-sentinel-honeypot`
 * Region: East US (or preferred region)
 
-📸 **Screenshot:** Resource group overview page
+ **Screenshot:** Resource group overview page
 
 ---
 
-### 2️⃣ Create Log Analytics Workspace
+###  Create Log Analytics Workspace
 
 * Name: `law-sentinel-honeypot`
 * Same region as resource group
 
-📸 **Screenshot:** Log Analytics workspace overview
+ **Screenshot:** Log Analytics workspace overview
 
 ---
 
-### 3️⃣ Enable Microsoft Sentinel
+###  Enable Microsoft Sentinel
 
 * Attach Sentinel to `law-sentinel-honeypot`
 
-📸 **Screenshot:** Microsoft Sentinel overview dashboard
+ **Screenshot:** Microsoft Sentinel overview dashboard
 
 ---
 
-### 4️⃣ Deploy Honeypot Virtual Machine
+###  Deploy Honeypot Virtual Machine
 
 **Configuration:**
 
@@ -101,49 +101,49 @@ This lab **intentionally weakens security controls** for learning purposes:
 * Size: Standard B1s
 * Authentication: Username + Password
 
-📸 **Screenshot:** VM overview (show public IP, OS, status)
+ **Screenshot:** VM overview (show public IP, OS, status)
 
 ---
 
-### 5️⃣ Configure Network Security Group (Critical)
+###  Configure Network Security Group (Critical)
 
 Allow inbound RDP from **Any source**:
 
 * Port: 3389
 * Protocol: TCP
 
-📸 **Screenshot:** NSG inbound rule showing RDP open to Any
+ **Screenshot:** NSG inbound rule showing RDP open to Any
 
 ---
 
-### 6️⃣ Disable Windows Firewall (Inside VM)
+###  Disable Windows Firewall (Inside VM)
 
 * Turn OFF firewall for Domain, Private, and Public profiles
 
-📸 **Screenshot:** Windows Defender Firewall disabled screen
+ **Screenshot:** Windows Defender Firewall disabled screen
 
 ---
 
-### 7️⃣ Connect VM to Log Analytics
+###  Connect VM to Log Analytics
 
 * Install **Azure Monitor Agent (AMA)**
 * Link VM to Log Analytics workspace
 
-📸 **Screenshot:** VM extensions showing Azure Monitor Agent installed
+ **Screenshot:** VM extensions showing Azure Monitor Agent installed
 
 ---
 
-### 8️⃣ Enable Security Event Collection
+###  Enable Security Event Collection
 
 * Sentinel → Data Connectors
 * Enable **Security Events via AMA**
 * Collect **All Security Events**
 
-📸 **Screenshot:** Data connector status showing VM connected
+ **Screenshot:** Data connector status showing VM connected
 
 ---
 
-## ⏳ Attack Simulation
+##  Attack Simulation
 
 The VM is left running and exposed to the internet. Within minutes to hours, automated attackers attempt RDP brute-force logins.
 
@@ -151,7 +151,7 @@ No manual attack simulation is required.
 
 ---
 
-## 🔍 Log Analysis (KQL)
+##  Log Analysis (KQL)
 
 ### Failed Login Attempts (Event ID 4625)
 
@@ -162,7 +162,7 @@ SecurityEvent
 | order by Attempts desc
 ```
 
-📸 **Screenshot:** Log Analytics results showing multiple attacker IPs
+ **Screenshot:** Log Analytics results showing multiple attacker IPs
 
 ---
 
@@ -187,20 +187,20 @@ SecurityEvent
 
 ---
 
-## 🚨 Incident Creation
+##  Incident Creation
 
 A scheduled analytics rule is created in Sentinel to detect excessive failed login attempts.
 
 * Trigger: More than 10 failures from a single IP
 * Entity mapping: IP Address
 
-📸 **Screenshot:** Analytics rule configuration
+ **Screenshot:** Analytics rule configuration
 
-📸 **Screenshot:** Generated Sentinel incident
+ **Screenshot:** Generated Sentinel incident
 
 ---
 
-## 🕵️ SOC Investigation Workflow
+##  SOC Investigation Workflow
 
 Within Microsoft Sentinel:
 
@@ -209,43 +209,19 @@ Within Microsoft Sentinel:
 * Analyze frequency and patterns of attempts
 * Validate detection logic
 
-📸 **Screenshot:** Incident investigation graph view
+ **Screenshot:** Incident investigation graph view
 
 ---
 
-## 📁 Repository Structure
 
-```
-azure-sentinel-honeypot/
-├── README.md
-├── architecture.png
-├── kql/
-│   ├── failed-logins.kql
-│   ├── successful-logins.kql
-│   └── brute-force-detection.kql
-└── screenshots/
-    ├── 01-resource-group.png
-    ├── 02-log-analytics.png
-    ├── 03-sentinel-overview.png
-    ├── 04-vm-overview.png
-    ├── 05-nsg-rdp-open.png
-    ├── 06-firewall-disabled.png
-    ├── 07-ama-installed.png
-    ├── 08-security-events-connector.png
-    ├── 09-kql-failed-logins.png
-    ├── 10-analytics-rule.png
-    └── 11-incident.png
-```
 
----
-
-## 📌 Resume-Ready Bullet
+##  Resume-Ready Bullet
 
 * Built an Azure-based Windows honeypot with exposed RDP and ingested security events into Microsoft Sentinel to detect brute-force attacks, create SIEM analytics rules, and investigate incidents using KQL.
 
 ---
 
-## 🧹 Cleanup
+##  Cleanup
 
 Delete the resource group after completing the lab to avoid unnecessary charges:
 
@@ -253,23 +229,16 @@ Delete the resource group after completing the lab to avoid unnecessary charges:
 rg-sentinel-honeypot
 ```
 
----
-
-## ✅ Status
-
-✔ SOC-ready
-✔ Interview-ready
-✔ GitHub portfolio-ready
 
 ---
 
-## 📊 Microsoft Sentinel Workbook (SOC Dashboard)
+##  Microsoft Sentinel Workbook (SOC Dashboard)
 
 This section documents the creation of a **custom Microsoft Sentinel Workbook** to visualize honeypot activity. Workbooks are heavily used by SOC teams for **monitoring, triage, and reporting**, making this a strong portfolio signal.
 
 ---
 
-### 🎯 Workbook Objectives
+###  Workbook Objectives
 
 * Visualize brute-force activity at a glance
 * Identify top attacker IPs and targets
@@ -278,7 +247,7 @@ This section documents the creation of a **custom Microsoft Sentinel Workbook** 
 
 ---
 
-### 1️⃣ Create a New Workbook
+###  Create a New Workbook
 
 1. Microsoft Sentinel → **Workbooks**
 2. Click **Add workbook**
@@ -290,13 +259,13 @@ This section documents the creation of a **custom Microsoft Sentinel Workbook** 
    Azure Honeypot – RDP Brute Force Monitoring
    ```
 
-📸 **Screenshot:** Blank workbook in edit mode
+ **Screenshot:** Blank workbook in edit mode
 
 ---
 
-### 2️⃣ Workbook Visualization Panels
+###  Workbook Visualization Panels
 
-#### 🔹 Panel 1: Failed RDP Logins Over Time (Time Chart)
+####  Panel 1: Failed RDP Logins Over Time (Time Chart)
 
 **Purpose:** Detect spikes in brute-force activity
 
@@ -310,11 +279,11 @@ SecurityEvent
 
 **Visualization:** Time chart
 
-📸 **Screenshot:** Time-based attack trend
+ **Screenshot:** Time-based attack trend
 
 ---
 
-#### 🔹 Panel 2: Top Attacking IP Addresses (Bar Chart)
+####  Panel 2: Top Attacking IP Addresses (Bar Chart)
 
 **Purpose:** Identify most aggressive attacker sources
 
@@ -329,11 +298,11 @@ SecurityEvent
 
 **Visualization:** Bar chart
 
-📸 **Screenshot:** Top attacking IPs bar chart
+ **Screenshot:** Top attacking IPs bar chart
 
 ---
 
-#### 🔹 Panel 3: Targeted User Accounts (Table)
+####  Panel 3: Targeted User Accounts (Table)
 
 **Purpose:** Identify which accounts are being targeted
 
@@ -348,11 +317,11 @@ SecurityEvent
 
 **Visualization:** Grid / Table
 
-📸 **Screenshot:** Targeted accounts table
+ **Screenshot:** Targeted accounts table
 
 ---
 
-#### 🔹 Panel 4: Successful Logins (High-Risk Event)
+####  Panel 4: Successful Logins (High-Risk Event)
 
 **Purpose:** Quickly identify potential compromise
 
@@ -366,26 +335,26 @@ SecurityEvent
 
 **Visualization:** Table
 
-📸 **Screenshot:** Successful login events
+ **Screenshot:** Successful login events
 
 ---
 
-### 3️⃣ Save the Workbook
+###  Save the Workbook
 
 * Click **Done Editing**
 * Save workbook to the resource group
 
-📸 **Screenshot:** Saved workbook overview
+ **Screenshot:** Saved workbook overview
 
 ---
 
-## 🧠 MITRE ATT&CK Mapping
+##  MITRE ATT&CK Mapping
 
 Mapping detections to **MITRE ATT&CK** demonstrates structured threat analysis and is highly valued in SOC environments.
 
 ---
 
-### 🎯 Relevant ATT&CK Techniques
+###  Relevant ATT&CK Techniques
 
 | Tactic            | Technique ID | Technique Name       | Evidence                           |
 | ----------------- | ------------ | -------------------- | ---------------------------------- |
@@ -395,7 +364,7 @@ Mapping detections to **MITRE ATT&CK** demonstrates structured threat analysis a
 
 ---
 
-### 🔗 Detection-to-ATT&CK Alignment
+###  Detection-to-ATT&CK Alignment
 
 **Analytics Rule:** RDP Brute-Force Detection
 
@@ -405,11 +374,11 @@ Mapping detections to **MITRE ATT&CK** demonstrates structured threat analysis a
 
 This mapping can be added directly in Sentinel analytics rules under **MITRE ATT&CK tactics and techniques**.
 
-📸 **Screenshot:** Analytics rule showing MITRE ATT&CK mapping
+ **Screenshot:** Analytics rule showing MITRE ATT&CK mapping
 
 ---
 
-## 📌 Resume-Ready Enhancements
+##  Resume-Ready Enhancements
 
 You can now truthfully state:
 
@@ -417,7 +386,7 @@ You can now truthfully state:
 
 ---
 
-## 🧹 Cleanup
+##  Cleanup
 
 Delete the resource group after completing the lab to avoid unnecessary charges:
 
@@ -427,16 +396,8 @@ rg-sentinel-honeypot
 
 ---
 
-## ✅ Status
 
-✔ SOC-ready
-✔ Workbook-enabled
-✔ MITRE ATT&CK–aligned
-✔ Recruiter-grade documentation
-
----
-
-## 📈 Future Improvements
+##  Future Improvements
 
 * Automation playbooks (Logic Apps)
 * Alert enrichment with GeoIP
