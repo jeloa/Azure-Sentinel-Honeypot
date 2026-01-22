@@ -1,4 +1,4 @@
-# Azure Sentinel Honeypot Project 
+# Azure Sentinel Honeypot Project  
 
 > **A complete, beginner-friendly, end‑to‑end Microsoft Sentinel project that simulates real-world attacks, detects them using SIEM analytics, visualizes activity with workbooks, and maps detections to MITRE ATT&CK.**
 
@@ -21,9 +21,7 @@ This is **not just a lab** — this mirrors real SOC workflows.
 
 ---
 
-##  High-Level Concept 
-
-We will:
+##  We will:
 
 1. Create a **Windows virtual machine** and expose it to the internet
 2. Let real attackers attempt to log in (honeypot)
@@ -53,7 +51,7 @@ Internet
 
 ---
 
-##  Important Security Warning
+## Important Security Warning
 
 This project **intentionally weakens security**:
 
@@ -67,7 +65,7 @@ This project **intentionally weakens security**:
 
 ---
 
-##  Prerequisites
+## Prerequisites
 
 * Azure account
 * No prior Sentinel experience required
@@ -75,7 +73,7 @@ This project **intentionally weakens security**:
 
 ---
 
-#  COMPLETE STEP-BY-STEP GUIDE (BEGINNER FRIENDLY)
+# COMPLETE STEP-BY-STEP GUIDE (BEGINNER FRIENDLY)
 
 ---
 
@@ -231,7 +229,7 @@ SecurityEvent
 | order by Attempts desc
 ```
 
-📸 Screenshot: Failed login KQL results
+ Screenshot: Failed login KQL results
 
 ---
 
@@ -267,7 +265,7 @@ SecurityEvent
 
 ---
 
-#  STEP 13 Build a Microsoft Sentinel Workbook
+# STEP 13 Build a Microsoft Sentinel Workbook
 
 **Why:** SOC analysts monitor dashboards, not raw logs.
 
@@ -318,7 +316,76 @@ Visualization: Table
 
 ---
 
-#  STEP 14 MITRE ATT&CK Mapping
+#  STEP 14 Attacker Geo Map (World Map Visualization)
+
+**Why this matters (Beginner explanation):**
+SOC analysts don’t just look at logs — they need to quickly understand **where attacks are coming from**. A geo map helps identify attack concentration, scanning behavior, and high-risk regions.
+
+This map is built using a **Microsoft Sentinel Workbook** with **GeoIP enrichment**.
+
+---
+
+## STEP 14.1 Open Your Sentinel Workbook
+
+1. Go to **Microsoft Sentinel**
+2. Click **Workbooks**
+3. Open your existing honeypot workbook
+4. Click **Edit**
+5. Click **Add** → **Add query**
+
+📸 Screenshot: Workbook in edit mode
+
+---
+
+## STEP 14.2 Use This KQL Query (GeoIP Enrichment)
+
+Paste this query into the workbook query editor:
+
+```kql
+SecurityEvent
+| where EventID == 4625
+| where isnotempty(IpAddress)
+| summarize Attempts = count() by IpAddress
+| evaluate geo_info_from_ip_address(IpAddress)
+| project IpAddress, Attempts, Country, Region, City, Latitude, Longitude
+```
+
+**What this query does (simple explanation):**
+
+* Collects failed login attempts
+* Groups them by attacker IP
+* Converts IP addresses into geographic locations
+* Outputs coordinates needed for a map
+
+---
+
+## STEP 14.3 Configure the Map Visualization 
+
+1. Under **Visualization**, select **Map**
+2. Set:
+
+   * Latitude field: `Latitude`
+   * Longitude field: `Longitude`
+   * Size by: `Attempts`
+   * Location info: `Country`
+3. Click **Apply**
+
+ You should now see a **world map with attacker locations**
+
+ Screenshot: World map showing attacker IP locations
+
+---
+
+## STEP 14.4 Save the Workbook
+
+1. Click **Done Editing**
+2. Save the workbook to your resource group
+
+ Screenshot: Saved workbook with geo map panel
+
+---
+
+#  STEP 15 MITRE ATT&CK Mapping
 
 **Why:** Shows structured threat understanding.
 
@@ -342,10 +409,10 @@ Add MITRE mapping directly in the analytics rule.
 * Workbooks simplify SOC monitoring
 * MITRE mapping improves alert context
 
+
+
+
 ---
-
-
-
 
 ##  Cleanup (VERY IMPORTANT)
 
@@ -355,9 +422,9 @@ Delete the resource group to stop billing:
 rg-sentinel-honeypot
 ```
 
----
 
+
+---
 
 **Author:** Jelo Abejero
 **Focus:** SOC Analyst | Cyber Defense | Cloud Security
-
