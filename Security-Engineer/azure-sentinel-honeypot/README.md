@@ -1,428 +1,292 @@
-# Azure Sentinel Honeypot Lab 
+# Azure Sentinel (SIEM) Honeypot Home Lab
 
-> **An end-to-end SOC-focused honeypot deployment using Microsoft Sentinel (SIEM) to detect and investigate real-world attack activity in Azure.**
+## 🔐 Azure Sentinel Honeypot Homelab
 
-This project demonstrates hands-on experience with **Azure security monitoring, log ingestion, KQL analysis, and incident response**, aligned with **Junior SOC / Cyber Defense Analyst** responsibilities.
+This project is a hands-on walkthrough for building an **Azure-based Honeypot SIEM lab** using **Microsoft Sentinel**.  
+The goal is to simulate real-world attacks, collect telemetry, analyze logs, and visualize attacker activity across the globe.
 
----
+Honeypots are intentionally vulnerable systems designed to attract malicious traffic. Combined with a **SIEM (Security Information and Event Management)** solution like **Microsoft Sentinel**, they provide deep visibility into attacker behavior, techniques, and patterns.
 
-##  Project Overview
-
-This lab deploys an intentionally exposed Windows virtual machine in Azure to act as a **honeypot**. Attack telemetry (primarily RDP brute-force attempts) is collected via **Azure Monitor Agent**, ingested into **Log Analytics**, and analyzed in **Microsoft Sentinel**.
-
-The goal is to simulate real-world attacker behavior and practice **threat detection, investigation, and alerting**.
+This lab demonstrates how cybersecurity, cloud, and automation come together in a real SOC-style environment.
 
 ---
 
-##  Objectives
+## 🎯 Learning Objectives
 
-* Deploy a honeypot VM with exposed RDP
-* Ingest Windows security logs into Microsoft Sentinel
-* Detect brute-force activity using KQL
-* Create Sentinel analytics rules and incidents
-* Perform basic SOC-style investigation
+By completing this lab, you will gain experience in:
 
----
-
-##  Architecture
-
-```
-Internet
-   ↓
-[Attacker IPs]
-   ↓
-[Azure VM (Windows Honeypot)]
-   ↓
-[Azure Monitor Agent]
-   ↓
-[Log Analytics Workspace]
-   ↓
-[Microsoft Sentinel]
-```
+- Deploying Azure infrastructure (VMs, Log Analytics, Sentinel)
+- Using Microsoft Sentinel as a SIEM platform
+- Collecting and analyzing Windows Security Event Logs
+- Writing and using **Kusto Query Language (KQL)**
+- Integrating **third-party APIs** for data enrichment
+- Building **Sentinel Workbooks** with an interactive world attack map
+- Understanding real-world SOC workflows
 
 ---
 
-##  Technologies Used
+## 🛠 Technologies & Requirements
 
-* Microsoft Azure
-* Microsoft Sentinel (SIEM)
-* Log Analytics Workspace
-* Azure Monitor Agent (AMA)
-* Windows Server 2019
-* Kusto Query Language (KQL)
+### Cloud & Security
+- Microsoft Azure Account
+- Microsoft Sentinel (SIEM)
+- Azure Log Analytics Workspace
+- Microsoft Defender for Cloud
+- Azure Virtual Machines (Windows)
+- Network Security Groups (NSG)
+- Sentinel Workbooks
 
----
+### Tools & Languages
+- PowerShell
+- Kusto Query Language (KQL)
+- Remote Desktop Protocol (RDP)
 
-##  Security Disclaimer
-
-This lab **intentionally weakens security controls** for learning purposes:
-
-* Public IP exposure
-* Open RDP (3389) to the internet
-* Windows Firewall disabled
-
- **Do NOT use production credentials** and **delete all resources after completion**.
-
----
-
-##  Deployment Steps
-
-###  Create Resource Group
-
-* Name: `rg-sentinel-honeypot`
-* Region: US West 3 (or preferred region)
-
- ![Resource group overview page](screenshots/Resource-group-verview-page.jpg)
-
-![Resource group overview page 2](screenshots/Resource-group-overview-page-2.jpg)
+### Third-Party
+- **ipgeolocation.io** (IP geolocation API)
+- Custom PowerShell script authored by **Josh Madakor**
 
 ---
 
-###  Create Log Analytics Workspace
+## 🧱 Architecture Overview
 
-* Name: `law-sentinel-honeypot`
-* Same region as resource group
-
- **Screenshot:** Log Analytics workspace overview
-
----
-
-###  Enable Microsoft Sentinel
-
-* Attach Sentinel to `law-sentinel-honeypot`
-
- **Screenshot:** Microsoft Sentinel overview dashboard
+- Azure Resource Group
+- Vulnerable Windows VM (Honeypot)
+- Network Security Group (Open inbound access)
+- Log Analytics Workspace
+- Microsoft Sentinel
+- Custom Logs with Geo-enriched data
+- Sentinel Workbook (World Attack Map)
 
 ---
 
-###  Deploy Honeypot Virtual Machine
-
-**Configuration:**
-
-* OS: Windows Server 2019 Datacenter
-* Size: Standard B1s
-* Authentication: Username + Password
-
- **Screenshot:** VM overview (show public IP, OS, status)
+## 🚀 Step-by-Step Deployment Guide
 
 ---
 
-###  Configure Network Security Group (Critical)
+### Step 1: Create a Microsoft Azure Account
 
-Allow inbound RDP from **Any source**:
+Microsoft provides **$200 of free Azure credit for 30 days** for new users.
 
-* Port: 3389
-* Protocol: TCP
-
- **Screenshot:** NSG inbound rule showing RDP open to Any
+Sign up at:
+- https://azure.microsoft.com
 
 ---
 
-###  Disable Windows Firewall (Inside VM)
+### Step 2: Deploy the Honeypot Virtual Machine
 
-* Turn OFF firewall for Domain, Private, and Public profiles
+#### Create Virtual Machine
+- Go to **Azure Portal** → search for **Virtual Machines**
+- Click **Create → Azure Virtual Machine**
 
- **Screenshot:** Windows Defender Firewall disabled screen
+#### Project Details
+- Resource Group: `honeypot-lab`
 
----
+#### Instance Details
+- VM Name: `honeypot-vm`
+- Region: `(US) West US 3`
+- Availability: No infrastructure redundancy required
+- Security Type: Standard
+- Image: Windows 10 Pro (22H2) x64 Gen2
+- Size: `Standard_D2s_v3` (2 vCPU, 8 GB RAM)
 
-###  Connect VM to Log Analytics
+#### Administrator Account
+- Create a username and password  
+⚠️ Save these credentials — they are required for RDP access.
 
-* Install **Azure Monitor Agent (AMA)**
-* Link VM to Log Analytics workspace
-
- **Screenshot:** VM extensions showing Azure Monitor Agent installed
-
----
-
-###  Enable Security Event Collection
-
-* Sentinel → Data Connectors
-* Enable **Security Events via AMA**
-* Collect **All Security Events**
-
- **Screenshot:** Data connector status showing VM connected
-
----
-
-##  Attack Simulation
-
-The VM is left running and exposed to the internet. Within minutes to hours, automated attackers attempt RDP brute-force logins.
-
-No manual attack simulation is required.
+#### Inbound Port Rules
+- Allow selected ports
+- RDP (3389)
 
 ---
 
-##  Log Analysis (KQL)
+### Step 3: Configure Network Security Group (NSG)
 
-### Failed Login Attempts (Event ID 4625)
+- NIC Network Security Group: **Advanced → Create New**
+- Remove default inbound rule (allow-rdp)
+- Add new inbound rule:
+  - Destination Port: `*`
+  - Protocol: Any
+  - Action: Allow
+  - Priority: `100`
+  - Name: `allow-any-inbound`
 
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize Attempts = count() by IpAddress, Account
-| order by Attempts desc
-```
-
- **Screenshot:** Log Analytics results showing multiple attacker IPs
+This intentionally exposes the VM to attract attackers.
 
 ---
 
-### Successful Logins (Event ID 4624)
+### Step 4: Create Log Analytics Workspace
 
-```kql
-SecurityEvent
-| where EventID == 4624
-| project TimeGenerated, Account, IpAddress, LogonType
+- Search for **Log Analytics Workspaces**
+- Create a new workspace:
+  - Name: `honeypot-law`
+  - Resource Group: `honeypot-lab`
+  - Region: `West US 3`
+
+This workspace collects Windows Event Logs and custom logs.
+
+---
+
+### Step 5: Enable Microsoft Defender for Cloud
+
+- Search for **Microsoft Defender for Cloud**
+- Go to **Environment Settings**
+- Select your subscription → `honeypot-law`
+
+#### Defender Plans
+- Foundational CSPM: ON
+- Servers: ON
+- SQL Servers: OFF
+
+#### Data Collection
+- Select **All Events**
+- Save settings
+
+---
+
+### Step 6: Connect VM to Log Analytics
+
+- Go to **Log Analytics Workspaces → honeypot-law**
+- Select **Virtual Machines**
+- Choose `honeypot-vm`
+- Click **Connect**
+
+---
+
+### Step 7: Enable Microsoft Sentinel
+
+- Search for **Microsoft Sentinel**
+- Click **Create**
+- Select `honeypot-law`
+- Click **Add**
+
+Sentinel is now active as your SIEM.
+
+---
+
+### Step 8: Disable Windows Firewall (Honeypot)
+
+#### Test Connectivity
+From your local machine:
+
+```bash
+ping <VM_PUBLIC_IP>
 ```
 
----
+Disable Firewall Inside VM
+- RDP into the VM
+- Search wf.msc
+- Open Windows Defender Firewall Properties
+-Turn OFF:
+  - Domain Profile
+  - Private Profile
+  - Public Profile
 
-### Brute-Force Detection Logic
+Re-test ping — it should now succeed.
 
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize Attempts = count() by IpAddress
-| where Attempts > 10
-```
-
----
-
-##  Incident Creation
-
-A scheduled analytics rule is created in Sentinel to detect excessive failed login attempts.
-
-* Trigger: More than 10 failures from a single IP
-* Entity mapping: IP Address
-
- **Screenshot:** Analytics rule configuration
-
- **Screenshot:** Generated Sentinel incident
+⚠️ Do this ONLY in a lab environment.
 
 ---
 
-##  SOC Investigation Workflow
+### Step 9: Automate Security Log Export (PowerShell)
 
-Within Microsoft Sentinel:
+### Inside the VM:
+- Open PowerShell ISE
+- Paste the custom PowerShell script (Josh Madakor)
+- Save as `log_exporter.ps1`
 
-* Review incident timeline
-* Investigate attacking IP entity
-* Analyze frequency and patterns of attempts
-* Validate detection logic
-
- **Screenshot:** Incident investigation graph view
-
----
-
-##  Repository Structure
+### API Setup
+- Create an account at ipgeolocation.io
+- Copy API key
+- Paste into script:
 
 ```
-azure-sentinel-honeypot/
-├── README.md
-├── architecture.png
-├── kql/
-│   ├── failed-logins.kql
-│   ├── successful-logins.kql
-│   └── brute-force-detection.kql
-└── screenshots/
-    ├── 01-resource-group.png
-    ├── 02-log-analytics.png
-    ├── 03-sentinel-overview.png
-    ├── 04-vm-overview.png
-    ├── 05-nsg-rdp-open.png
-    ├── 06-firewall-disabled.png
-    ├── 07-ama-installed.png
-    ├── 08-security-events-connector.png
-    ├── 09-kql-failed-logins.png
-    ├── 10-analytics-rule.png
-    └── 11-incident.png
+$API_KEY = "<YOUR_API_KEY>"
 ```
+### Run the script to continuously generate logs.
 
-
-
-
-
----
-
-
-
-##  Microsoft Sentinel Workbook (SOC Dashboard)
-
-This section documents the creation of a **custom Microsoft Sentinel Workbook** to visualize honeypot activity. Workbooks are heavily used by SOC teams for **monitoring, triage, and reporting**, making this a strong portfolio signal.
-
----
-
-###  Workbook Objectives
-
-* Visualize brute-force activity at a glance
-* Identify top attacker IPs and targets
-* Track attack volume over time
-* Support rapid SOC triage
-
----
-
-###  Create a New Workbook
-
-1. Microsoft Sentinel → **Workbooks**
-2. Click **Add workbook**
-3. Select **Blank workbook**
-4. Click **Edit**
-5. Set title:
-
-   ```
-   Azure Honeypot – RDP Brute Force Monitoring
-   ```
-
- **Screenshot:** Blank workbook in edit mode
-
----
-
-###  Workbook Visualization Panels
-
-####  Panel 1: Failed RDP Logins Over Time (Time Chart)
-
-**Purpose:** Detect spikes in brute-force activity
-
-**Query:**
-
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize Attempts = count() by bin(TimeGenerated, 1h)
+- Logs are written to:
 ```
-
-**Visualization:** Time chart
-
- **Screenshot:** Time-based attack trend
-
----
-
-####  Panel 2: Top Attacking IP Addresses (Bar Chart)
-
-**Purpose:** Identify most aggressive attacker sources
-
-**Query:**
-
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize Attempts = count() by IpAddress
-| order by Attempts desc
-```
-
-**Visualization:** Bar chart
-
- **Screenshot:** Top attacking IPs bar chart
-
----
-
-####  Panel 3: Targeted User Accounts (Table)
-
-**Purpose:** Identify which accounts are being targeted
-
-**Query:**
-
-```kql
-SecurityEvent
-| where EventID == 4625
-| summarize Attempts = count() by Account
-| order by Attempts desc
-```
-
-**Visualization:** Grid / Table
-
- **Screenshot:** Targeted accounts table
-
----
-
-####  Panel 4: Successful Logins (High-Risk Event)
-
-**Purpose:** Quickly identify potential compromise
-
-**Query:**
-
-```kql
-SecurityEvent
-| where EventID == 4624
-| project TimeGenerated, Account, IpAddress, LogonType
-```
-
-**Visualization:** Table
-
- **Screenshot:** Successful login events
-
----
-
-###  Save the Workbook
-
-* Click **Done Editing**
-* Save workbook to the resource group
-
- **Screenshot:** Saved workbook overview
-
----
-
-##  MITRE ATT&CK Mapping
-
-Mapping detections to **MITRE ATT&CK** demonstrates structured threat analysis and is highly valued in SOC environments.
-
----
-
-###  Relevant ATT&CK Techniques
-
-| Tactic            | Technique ID | Technique Name       | Evidence                           |
-| ----------------- | ------------ | -------------------- | ---------------------------------- |
-| Credential Access | T1110        | Brute Force          | Repeated RDP login failures (4625) |
-| Initial Access    | T1078        | Valid Accounts       | Successful RDP login (4624)        |
-| Lateral Movement  | T1021.001    | Remote Services: RDP | RDP-based access attempts          |
-
----
-
-###  Detection-to-ATT&CK Alignment
-
-**Analytics Rule:** RDP Brute-Force Detection
-
-* **ATT&CK Technique:** T1110 – Brute Force
-* **Data Source:** Windows Security Events
-* **Signal:** Excessive failed authentication attempts from a single IP
-
-This mapping can be added directly in Sentinel analytics rules under **MITRE ATT&CK tactics and techniques**.
-
- **Screenshot:** Analytics rule showing MITRE ATT&CK mapping
-
----
-
-
-
-
-##  Cleanup
-
-Delete the resource group after completing the lab to avoid unnecessary charges:
-
-```
-rg-sentinel-honeypot
+C:\ProgramData\failed_rdp.log
 ```
 
 ---
 
-##  Status
+### Step 10: Create Custom Log in Log Analytics
 
-✔ SOC-ready
-✔ Workbook-enabled
-✔ MITRE ATT&CK–aligned
+- Copy contents of `failed_rdp.log`
+- Save locally as `failed_rdp.log` (TXT format)
+- Go to Log Analytics Workspace → Custom Logs
+- Add custom log:
+  - Name: `FAILED_RDP_WITH_GEO`
+  -  Path: `C:\ProgramData\failed_rdp.log`
+
+ ---
+
+### Step 11: Query & Extract Logs Using KQL
+```
+Paste into Log Analytics → Logs:
+FAILED_RDP_WITH_GEO_CL 
+| extend username = extract(@"username:([^,]+)", 1, RawData),
+         timestamp = extract(@"timestamp:([^,]+)", 1, RawData),
+         latitude = extract(@"latitude:([^,]+)", 1, RawData),
+         longitude = extract(@"longitude:([^,]+)", 1, RawData),
+         sourcehost = extract(@"sourcehost:([^,]+)", 1, RawData),
+         state = extract(@"state:([^,]+)", 1, RawData),
+         label = extract(@"label:([^,]+)", 1, RawData),
+         destination = extract(@"destinationhost:([^,]+)", 1, RawData),
+         country = extract(@"country:([^,]+)", 1, RawData)
+| where destination != "samplehost"
+| where sourcehost != ""
+| summarize event_count=count() by timestamp, label, country, state, sourcehost, username, destination, longitude, latitude
+```
+
+### Step 12: Build World Attack Map (Sentinel Workbook)
+- Microsoft Sentinel → Workbooks → Add Workbook → Edit
+- Remove default widgets
+- Add Query:
+```
+FAILED_RDP_WITH_GEO_CL
+| parse RawData with * "latitude:" Latitude ",longitude:" Longitude ",destinationhost:" DestinationHost ",username:" Username ",sourcehost:" Sourcehost ",state:" State ", country:" Country ",label:" Label ",timestamp:" Timestamp
+| where DestinationHost != "samplehost"
+| where Sourcehost != ""
+| summarize event_count=count() by Sourcehost, Latitude, Longitude, Country, Label, DestinationHost
+```
+### Visualization Settings
+- Visualization: Map
+- Location: Latitude / Longitude
+- Size by: event_count
+- Coloring: Heatmap
+- Metric Label: label
+
+Save as:
+Failed RDP International Map
 
 ---
 
-##  Future Improvements
-
-* Automation playbooks (Logic Apps)
-* Alert enrichment with GeoIP
-* Linux SSH honeypot expansion
-* Threat intelligence feeds
+## What This Lab Demonstrates
+- SIEM fundamentals
+- SOC analyst workflows
+- Cloud security monitoring
+- Threat detection & analysis
+- KQL log querying
+- Data enrichment & visualization
 
 ---
 
-**Author:** Jelo Abejero
-**Focus:** SOC Analyst | Cyber Defense | Cloud Security
+### Shut Down Resources (CRITICAL)
 
+To avoid charges:
+- Go to Resource Groups
+- Select `honeypot-lab`
+- Click Delete
+- Confirm resource group name
+- Enable Force delete
+
+---
+
+## Disclaimer
+
+This project is for educational purposes only.
+Never deploy insecure configurations in production environments.
+
+---
