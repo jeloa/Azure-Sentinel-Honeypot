@@ -91,7 +91,7 @@ This project **intentionally weakens security**:
    * Region: Choose any (East US recommended)
 5. Click **Review + Create** → **Create**
 
- Screenshot: Resource group overview
+ ![Resource group overview](screenshots/Resource-group-overview.jpg)
 
 ---
 
@@ -108,7 +108,6 @@ This project **intentionally weakens security**:
    * Region: Same as resource group
 4. Click **Review + Create** → **Create**
 
- Screenshot: Log Analytics workspace overview
 
 ---
 
@@ -121,7 +120,7 @@ This project **intentionally weakens security**:
 3. Select workspace: `law-sentinel-honeypot`
 4. Click **Add**
 
- Screenshot: Sentinel overview dashboard
+ 
 
 ---
 
@@ -141,7 +140,7 @@ This project **intentionally weakens security**:
    * Username: `adminuser`
    * Password: Strong but disposable
 
- Screenshot: VM basics configuration
+
 
 ---
 
@@ -157,7 +156,7 @@ This project **intentionally weakens security**:
    * Source: **Any**
 2. Click **Review + Create** → **Create**
 
- Screenshot: NSG rule showing RDP open to Any
+
 
 ---
 
@@ -174,7 +173,6 @@ This project **intentionally weakens security**:
    * Private
    * Public
 
- Screenshot: Firewall disabled
 
 ---
 
