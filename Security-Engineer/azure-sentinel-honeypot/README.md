@@ -72,7 +72,7 @@ This lab **intentionally weakens security controls** for learning purposes:
 * Name: `rg-sentinel-honeypot`
 * Region: East US (or preferred region)
 
- ![Resource group overview page](Azure-Portfolio/Security-Engineer/azure-sentinel-honeypot/screenshots/Resource-group-overview-page.jpg)
+ ![Resource group overview page](Azure-Portfolio/Security-Engineer/azure-sentinel-honeypot/screenshots/Resource-group-verview-page.jpg)
 
 ![Resource group overview page 2](Azure-Portfolio/Security-Engineer/azure-sentinel-honeypot/screenshots/Resource-group-overview-page-2.jpg)
 
