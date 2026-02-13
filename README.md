@@ -17,7 +17,6 @@ By completing this project, we demonstrate:
 * Threat modeling using MITRE ATT&CK
 * Professional documentation
 
-This is **not just a lab** — this mirrors real SOC workflows.
 
 ---
 
