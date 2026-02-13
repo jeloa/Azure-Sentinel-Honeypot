@@ -72,7 +72,7 @@ This project **intentionally weakens security**:
 
 ---
 
-# COMPLETE STEP-BY-STEP GUIDE (BEGINNER FRIENDLY)
+# STEP-BY-STEP GUIDE
 
 ---
 
@@ -423,5 +423,4 @@ rg-sentinel-honeypot
 
 ---
 
-**Author:** Jelo Abejero
-**Focus:** SOC Analyst | Cyber Defense | Cloud Security
+
